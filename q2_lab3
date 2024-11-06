@@ -1,0 +1,21 @@
+#include <stdio.h>
+int main(){
+  int initial_balance = 1000;
+  int balance = initial_balance;
+  
+  
+  int transactions[] = {200, -150, -500, -400, -50, -200, 300}
+  int total_transactions = 7;
+  int tobeprocessed[100];
+  int tbp_index[]
+  
+ for int (i=0 ,i<total_transactions ,i++)
+ int transaction = transactions[i];
+ 
+ 
+ if transaction < 0 && transaction > balance {
+     printf("Transaction %d is invalid due to insufficient funds. \n")
+ }
+ 
+ 
+}
