@@ -1,1 +1,252 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+// Define the data structures
+
+// Date structure for player age
+struct date_t {
+    int day;
+    int month;
+    int year;
+};
+
+// Player structure
+struct player_t {
+    char name[25];
+    int kit_number;
+    char club[25];
+    struct date_t age;  // Date of birth
+    char position[20];
+};
+
+// Team structure
+struct team_t {
+    char name[20];
+    struct player_t *players;  // Dynamic array for players
+    int active_size;  // Current number of players in the team
+};
+
+// Global variables for teams
+struct team_t *teams = NULL;  // Array of teams, dynamically allocated
+int num_teams = 0;  // Current number of teams enrolled
+int MAX_TEAMS = 0;  // User-defined max number of teams
+int MAX_PLAYERS = 0;  // User-defined max players per team
+
+// Function Prototypes
+void display_menu();
+void enroll_club();
+void add_player();
+void search_update();
+void display_club_statistics();
+void handle_error(const char *message);
+
+int main() {
+    // Ask the user to define the number of teams and squad size
+    printf("Enter the maximum number of teams: ");
+    scanf("%d", &MAX_TEAMS);
+    getchar();  // Consume the newline character
+
+    printf("Enter the maximum number of players per team: ");
+    scanf("%d", &MAX_PLAYERS);
+    getchar();  // Consume the newline character
+
+    // Dynamically allocate memory for the teams array
+    teams = (struct team_t *)malloc(MAX_TEAMS * sizeof(struct team_t));
+
+    // Main loop
+    int choice;
+    while (1) {
+        display_menu();
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        getchar();  // To consume the newline character from previous input
+        
+        switch (choice) {
+            case 1:
+                enroll_club();
+                break;
+            case 2:
+                add_player();
+                break;
+            case 3:
+                search_update();
+                break;
+            case 4:
+                display_club_statistics();
+                break;
+            case 5:
+                printf("Exiting the program.\n");
+                free(teams);  // Free dynamically allocated memory before exiting
+                return 0;  // Exit program
+            default:
+                handle_error("Invalid choice. Exiting program.");
+                free(teams);  // Free dynamically allocated memory
+                return 1;  // Exit program due to invalid choice
+        }
+    }
+}
+
+// Function to display the menu
+void display_menu() {
+    printf("\n----- League Team Application -----\n");
+    printf("1. Enroll a new club\n");
+    printf("2. Add a player to a club\n");
+    printf("3. Search and update a player\n");
+    printf("4. Display club statistics\n");
+    printf("5. Exit\n");
+}
+
+// Function to enroll a new club
+void enroll_club() {
+    if (num_teams >= MAX_TEAMS) {
+        printf("Cannot enroll more teams. Maximum reached.\n");
+        return;
+    }
+    
+    struct team_t new_team;
+    
+    // Dynamically allocate memory for players in the team
+    new_team.players = (struct player_t *)malloc(MAX_PLAYERS * sizeof(struct player_t));
+    
+    // Get the club name
+    printf("Enter the name of the club: ");
+    fgets(new_team.name, sizeof(new_team.name), stdin);
+    new_team.name[strcspn(new_team.name, "\n")] = 0;  // Remove newline character
+    
+    // Set initial active size to 0
+    new_team.active_size = 0;
+    
+    // Add new team to the array
+    teams[num_teams] = new_team;
+    num_teams++;
+    
+    printf("Club enrolled successfully!\n");
+}
+
+// Function to add a player to a club
+void add_player() {
+    if (num_teams == 0) {
+        printf("No clubs enrolled yet. Please enroll a club first.\n");
+        return;
+    }
+
+    // Display clubs
+    printf("Select a club to add player to:\n");
+    for (int i = 0; i < num_teams; i++) {
+        printf("%d. %s\n", i + 1, teams[i].name);
+    }
+    int club_choice;
+    printf("Enter your choice: ");
+    scanf("%d", &club_choice);
+    getchar();  // To consume the newline character
+
+    if (club_choice < 1 || club_choice > num_teams) {
+        handle_error("Invalid club selection.");
+        return;
+    }
+
+    struct player_t new_player;
+    struct team_t *selected_team = &teams[club_choice - 1];
+
+    // Check for space in the team
+    if (selected_team->active_size >= MAX_PLAYERS) {
+        printf("The team has reached its maximum player capacity.\n");
+        return;
+    }
+
+    // Get player details
+    printf("Enter player's full name: ");
+    fgets(new_player.name, sizeof(new_player.name), stdin);
+    new_player.name[strcspn(new_player.name, "\n")] = 0;  // Remove newline character
+
+    // Check for duplicate player names
+    for (int i = 0; i < selected_team->active_size; i++) {
+        if (strcasecmp(new_player.name, selected_team->players[i].name) == 0) {
+            printf("Duplicate player name found: %s\n", selected_team->players[i].name);
+            return;
+        }
+    }
+
+    // Get kit number and check for duplicates
+    printf("Enter player's kit number: ");
+    scanf("%d", &new_player.kit_number);
+    getchar();  // Consume newline character
+
+    for (int i = 0; i < selected_team->active_size; i++) {
+        if (selected_team->players[i].kit_number == new_player.kit_number) {
+            printf("Duplicate kit number found: %d\n", new_player.kit_number);
+            return;
+        }
+    }
+
+    // Get player position
+    printf("Enter player's position: ");
+    fgets(new_player.position, sizeof(new_player.position), stdin);
+    new_player.position[strcspn(new_player.position, "\n")] = 0;  // Remove newline character
+
+    // Get player's date of birth
+    printf("Enter player's date of birth (day month year): ");
+    scanf("%d %d %d", &new_player.age.day, &new_player.age.month, &new_player.age.year);
+    getchar();  // Consume newline character
+
+    // Add player to the team
+    selected_team->players[selected_team->active_size] = new_player;
+    selected_team->active_size++;
+
+    printf("Player added successfully!\n");
+}
+
+// Function to search and update a player
+void search_update() {
+    if (num_teams == 0) {
+        printf("No clubs enrolled yet. Please enroll a club first.\n");
+        return;
+    }
+
+    char search_name[25];
+    int search_kit;
+
+    printf("Search by name (1) or kit number (2): ");
+    int search_choice;
+    scanf("%d", &search_choice);
+    getchar();  // Consume newline character
+
+    if (search_choice == 1) {
+        printf("Enter player's name to search: ");
+        fgets(search_name, sizeof(search_name), stdin);
+        search_name[strcspn(search_name, "\n")] = 0;  // Remove newline character
+
+        // Search through all teams
+        for (int i = 0; i < num_teams; i++) {
+            for (int j = 0; j < teams[i].active_size; j++) {
+                if (strcasecmp(teams[i].players[j].name, search_name) == 0) {
+                    printf("Player found: %s\n", teams[i].players[j].name);
+                    printf("Kit number: %d, Position: %s\n", teams[i].players[j].kit_number, teams[i].players[j].position);
+                    // Ask for update
+                    printf("Do you want to update this player's details? (yes/no): ");
+                    char update_choice[4];
+                    fgets(update_choice, sizeof(update_choice), stdin);
+                    update_choice[strcspn(update_choice, "\n")] = 0;
+
+                    if (strcasecmp(update_choice, "yes") == 0) {
+                        printf("Enter new position: ");
+                        fgets(teams[i].players[j].position, sizeof(teams[i].players[j].position), stdin);
+                        teams[i].players[j].position[strcspn(teams[i].players[j].position, "\n")] = 0;  // Remove newline
+                    }
+                    return;
+                }
+            }
+        }
+        printf("Player not found.\n");
+    } else if (search_choice == 2) {
+        // Implement searching by kit number if desired
+        printf("Enter player's kit number to search: ");
+        scanf("%d", &search_kit);
+        getchar();  // Consume newline character
+
+    }
+}
+
+//
 
