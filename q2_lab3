@@ -1,49 +1,39 @@
 #include <stdio.h>
 
+#define SIZE 7
+
 int main() {
-    int initial_balance = 1000;
-    int balance = initial_balance;
-    
-    // Array of transactions (positive for deposit, negative for withdrawal)
-    int transactions[] = {200, -150, -500, -400, -50, -200, 300};
-    int total_transactions = 7;
-    
-    // Array to store unprocessed transactions
-    int tobeprocessed[100];
-    int tbp_index = 0;  // Index for tobeprocessed array
-    
-    // Process each transaction
-    for (int i = 0; i < total_transactions; i++) {
-        int transaction = transactions[i];
-        
-        // If withdrawal exceeds current balance, skip this transaction
-        if (transaction < 0 && (-transaction > balance)) {
-            printf("Transaction %d is invalid due to insufficient funds.\n", transaction);
-            tobeprocessed[tbp_index++] = transaction;  // Store in tobeprocessed array
-            continue;  // Skip the rest of the loop and process next transaction
+    int balance = 1000;  // Starting balance
+    int transactions[SIZE] = {200, -150, -500, -400, -50, -200, 300}; // Example transactions
+    int tobeprocessed[SIZE];  // Array to store unprocessed transactions
+    int processedCount = 0, unprocessedCount = 0;  // Counts for processed and unprocessed transactions
+
+    for (int i = 0; i < SIZE; i++) {
+        if (transactions[i] < 0 && transactions[i] < -balance) {
+            // If withdrawal exceeds the balance
+            printf("Transaction %d is invalid: Withdrawal exceeds balance. Skipping transaction.\n", transactions[i]);
+            tobeprocessed[unprocessedCount++] = transactions[i];  // Store unprocessed transaction
+            continue;  // Skip this transaction
         }
-        
-        // Update balance for valid transactions
-        balance += transaction;
-        
-        // If balance reaches 0, stop processing further transactions
+
+        // Process valid transaction
+        balance += transactions[i];  // Update balance
         if (balance == 0) {
-            printf("Balance reached 0. No further transactions will be processed.\n");
-            tobeprocessed[tbp_index++] = transaction;  // Store unprocessed transaction
-            break;  // Exit the loop
+            // Stop processing if balance reaches 0
+            printf("Balance has reached 0. No further transactions will be processed.\n");
+            tobeprocessed[unprocessedCount++] = transactions[i];  // Store unprocessed transaction
+            break;
         }
     }
-    
-    // Print final balance
-    printf("\nFinal Balance: %d AED\n", balance);
-    
-    // Print unprocessed transactions
-    printf("\nUnprocessed transactions:\n");
-    for (int i = 0; i < tbp_index; i++) {
+
+    // Final balance and tobeprocessed transactions
+    printf("\nFinal balance: %d AED\n", balance);
+
+    printf("Unprocessed transactions:\n");
+    for (int i = 0; i < unprocessedCount; i++) {
         printf("%d ", tobeprocessed[i]);
     }
     printf("\n");
-    
+
     return 0;
 }
-
